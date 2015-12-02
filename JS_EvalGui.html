@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript Plugin Example</title>
+    <script type="text/javascript">
+        // Include version 1 of the base GUI library.
+        document.write('<link rel="import" href="' + window.Alteryx.LibDir + '1/lib/alteryx/gui/includes.html">');
+    </script>
+</head>
+<body>
+	<form>
+		<!--
+			This file provides a comprehensive list of the GUI widgets available in the Alteryx plugin widget library.
+		-->
+
+        <label for="NewField">New Field Name</label>
+        <alteryx-pluginwidget type="TextBox" id="NewField" dataName="NewField"></alteryx-pluginwidget>
+
+        <label for="JsExpresion">JS Expresion</label>
+        <alteryx-pluginwidget type="TextBox" id="JsExpresion" dataName="JsExpresion"></alteryx-pluginwidget>
+
+
+		<!--
+			End plugin widgets section.
+		-->
+
+	</form>
+
+    <script type="text/javascript">
+        /**
+         * Specify actions that will take place before the tool's configuration is loaded into the manager.
+         *
+         * @param manager The data manager.
+         * @param AlteryxDataItems The data items in use on this page.
+         */
+        Alteryx.Gui.BeforeLoad = function (manager, AlteryxDataItems)
+        {
+        };
+
+        Alteryx.Gui.AfterLoad = function (manager, AlteryxDataItems)
+        {
+            // set default value
+            if (manager.GetDataItem("NewField").value == "") {
+                manager.GetDataItem("NewField").setValue("NewField1");
+            }
+        };
+
+        /**
+         * Set the tool's default annotation on the canvas.
+         *
+         * @param manager The data manager.
+         * @returns {string}
+         */
+        Alteryx.Gui.Annotation = function (manager)
+        {
+            return manager.GetDataItem("JsExpresion").value;
+        };
+    </script>
+
+</body>
+</html>
