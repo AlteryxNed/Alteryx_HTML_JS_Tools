@@ -31,69 +31,71 @@
 
         var TheNewFieldName;
         var TheExpression;
-        var InputRecordInfo;
-        var OutputRecordInfo;
-        var FieldNums = {} 
 
         /**
          * Called at the beginning of plugin lifetime with the plugin's configuration properties.
-         * This implementation contains example code that prints each configuration key/value pair as
-         * an engine output message.
          *
          * @params config The plugin's configuration.
          */
         Alteryx.Plugin.PI_Init = function(config)
         {
-            Alteryx.Engine.SendMessage.Info("Config properties:");
-
             TheNewFieldName = config.Configuration["NewField"];
-            TheExpression = config.Configuration["JsExpresion"];
-            TheExpression = TheExpression.replace(/\[(.*?)\]/g, "GetFieldValue(\"$1\")");
-            console.log(TheExpression);
+            TheExpression = config.Configuration["JsExpression"].replace(/\[(.*?)\]/g, "GetFieldValue(\"$1\")");
         };
 
+        var InputRecordInfo;
+        var OutputRecordInfo;
         var mapFieldNames = {};
 
         /**
-         * Called once for each incoming connection with the connection's metainfo. When a per-connection init comes in,
-         * we would probably store off the incoming RecordInfo.
+         * Called once for each incoming connection with the connection's metainfo.
          *
          * @params metaInfo The meta-information for the current incoming connection.
          */
         Alteryx.Plugin.II_Init = function(metaInfo)
         {
+            // Save a reference to the RecordInfo passed into this function in the global namespace, so we can access it later.
             InputRecordInfo = metaInfo.RecordInfo;
+
+            // Create a new object in the global namespace to contain the metainfo for this tool's output
             OutputRecordInfo = {};
 
+            // Populate the OutputRecordInfo object with all of the input fields
             for (var i in InputRecordInfo) {
                 OutputRecordInfo[i] = InputRecordInfo[i];
             }
 
+            // Create metainfo for the new field we'll be adding to the end of the output
             var NewField = {};
             NewField.name = TheNewFieldName;
             NewField.type = "V_WString";
             NewField.size = 999999;
+
+            // Add that new field's metainfo to the output
             OutputRecordInfo.Field.push(NewField);
 
+            // Create a map that points field names to their index in the OutputRecordInfo's field array
             for (var x = 0; x<OutputRecordInfo.Field.length; ++x)
             {
                 mapFieldNames[OutputRecordInfo.Field[x].name] = x;
             }
 
+            // Notify the engine that II_Init has finished processing and send the updated metadata back to the engine
             Alteryx.Engine.SendMessage.RecordInfo("Output", OutputRecordInfo)
         };
         
-
         /**
          * After II_Init has been called for each incoming connection, II_PushRecords is called for each non-empty
-         * incoming connection with that connection's records. This implementation contains example code that
-         * pushes out the same records it receives.
+         * incoming connection with that connection's records.
          *
          * @param data The incoming records.
          */
         Alteryx.Plugin.II_PushRecords = function(data)
         {
+            // Create an array to save all the rows of processed output data
             var myRecords = [];
+
+            // Create a function that returns the value in this row for a given field name
             var GetFieldValue = function(name)
             {
                 if (mapFieldNames[name]==null)
@@ -103,10 +105,18 @@
                 }
                 return myRow[mapFieldNames[name]];
             }
+
+            // Create an error flag to limit us to one error message per run
             var evalError = false;
+
+            // Loop through each record (or row) of data that has been passed into this function
             for (var i = 0; i < data.Records.length; i++)
             {
+                // Reset the variable that contains this row's output data. Its current contents will
+                // be available to GetFieldValue each time GetFieldValue is called.
                 var myRow = [];
+
+                // Iterate through the fields in this row and add them in order to the output row.
                 for (var j = 0; j < data.Records[i].length; j++)
                 {
                     myRow.push(data.Records[i][j]);
@@ -114,17 +124,30 @@
 
                 try
                 {
+                    // Evaluate the expression that the user entered in their second configuration text box. In PI_Init,
+                    // we searched this expression for instances of [Field1] and replaced them with GetFieldValue("Field1").
+                    // Here in II_PushRecords, we've defined the GetFieldValue function, which will look at the current row
+                    // and give us the value in the specified field of the current row. After evaluating the expression, we
+                    // push the results into the final field of this row.
+
                     myRow.push(eval(TheExpression));
                 }
                 catch (e)
                 {
+                    // If there's an error evaluating the Javascript entered by the user, we notify them of it here, set the
+                    // value of the new field to null, then disable further error messages.
+
                     if (!evalError)
                         Alteryx.Engine.SendMessage.Error("There was an error in the expression: " +  e.message);
                     myRow.push(null);
                     evalError= true;
                 }
+
+                // Push this row onto the end of the complete records array.
                 myRecords.push(myRow);
             }
+
+            // Signal the engine that II_PushRecords has finished executing, and send the completed array of output data back to the engine.
             Alteryx.Engine.SendMessage.PushRecords("Output", myRecords);
         };
 
