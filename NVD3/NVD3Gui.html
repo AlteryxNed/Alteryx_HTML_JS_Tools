@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript Plugin Example</title>
+    <script type="text/javascript">
+        // Include version 1 of the base GUI library.
+        document.write('<link rel="import" href="' + window.Alteryx.LibDir + '1/lib/alteryx/gui/includes.html">');
+    </script>
+</head>
+<body>
+    <fieldset>
+        <legend>About</legend>    
+        <p>This is a simple wrapper for the <a href="http://nvd3.org/">http://nvd3.org/</a> to demonstrate the HTML/JS SDK in Alteryx.</p>
+    </fieldset>
+	<form>
+        <fieldset>
+			<legend>Chart Options</legend>
+
+            <label for="data_ChartType">Chart Type</label>
+            <alteryx-pluginwidget type="DropDown" id="gui_ChartType" dataName="data_ChartType">
+                <alteryx-option>multiBarChart</alteryx-option>
+                <alteryx-option default>stackedAreaChart</alteryx-option>
+                <alteryx-option>scatterChart</alteryx-option>
+                <alteryx-option>lineChart</alteryx-option>
+            </alteryx-pluginwidget>
+
+			<label for="data_Width">Width (Inches)</label>
+			<alteryx-pluginwidget type="NumericSpinner" id="gui_Width" dataName="data_Width" min="1" max="100"></alteryx-pluginwidget>
+
+			<label for="data_Height">Height (Inches)</label>
+			<alteryx-pluginwidget type="NumericSpinner" id="gui_Height" dataName="data_Height" min="1" max="100"></alteryx-pluginwidget>
+
+            <label for="data_Scale">Scale</label>
+            <alteryx-pluginwidget type="DropDown" id="gui_Scale" dataName="data_Scale">
+                <alteryx-option uiobject="1 in 1,000,000,000">1000000000</alteryx-option>
+                <alteryx-option uiobject="1 in 1,000,000">1000000</alteryx-option>
+                <alteryx-option uiobject="1 in 1,000">1000</alteryx-option>
+                <alteryx-option uiobject="1 in 1" default >1</alteryx-option>
+            </alteryx-pluginwidget>            
+
+        </fieldset>           
+        <fieldset>
+			<legend>Data</legend>
+
+            <label for="data_Name">Name field</label>
+            <alteryx-pluginwidget type="FieldSelectorSingle" id="gui_Name" dataName="data_Name"
+                                  inputNumber="0" connectionNumber="0" fieldType="String" includeNone="False">
+            </alteryx-pluginwidget>
+            
+            <label for="data_Values">Value field(s)</label>
+            <alteryx-pluginwidget type="MultiFieldSelector" id="gui_Values" dataName="data_Values"
+                                  inputNumber="0" connectionNumber="0" fieldType="Numeric" includeNone="False">
+            </alteryx-pluginwidget>
+
+        </fieldset>           
+        <fieldset>
+			<legend>Labels</legend>
+
+			<label for="data_Prefix">Prefix (e.g. $)</label>
+			<alteryx-pluginwidget type="TextBox" id="gui_Prefix" dataName="data_Prefix"></alteryx-pluginwidget>
+            
+			<label for="data_Suffix">Suffix (e.g. %)</label>
+			<alteryx-pluginwidget type="TextBox" id="gui_Suffix" dataName="data_Suffix"></alteryx-pluginwidget>
+
+			<label for="data_XAxis">X Axis Title</label>
+			<alteryx-pluginwidget type="TextBox" id="gui_XAxis" dataName="data_XAxis"></alteryx-pluginwidget>
+
+			<label for="data_YAxis">Y Axis Title</label>
+			<alteryx-pluginwidget type="TextBox" id="gui_YAxis" dataName="data_YAxis"></alteryx-pluginwidget>
+        </fieldset>           
+		<!--
+			End plugin widgets section.
+		-->
+
+	</form>
+
+    <script type="text/javascript">
+        /**
+         * Specify actions that will take place before the tool's configuration is loaded into the manager.
+         *
+         * @param manager The data manager.
+         * @param AlteryxDataItems The data items in use on this page.
+         */
+        Alteryx.Gui.BeforeLoad = function(manager, AlteryxDataItems) {
+            // set the efault values
+            var i = new AlteryxDataItems.SimpleInt({dataname: 'data_Width', id: 'data_WidthX'});
+            manager.AddDataItem(i);
+            i.setValue(8);
+            i = new AlteryxDataItems.SimpleInt({dataname: 'data_Height', id: 'data_HeightX'});
+            manager.AddDataItem(i);
+            i.setValue(6);
+        };
+        
+
+        /**
+         * Set the tool's default annotation on the canvas.
+         *
+         * @param manager The data manager.
+         * @returns {string}
+         */
+        Alteryx.Gui.Annotation = function(manager) {
+            return manager.GetDataItem("TextBox1").value + " " + manager.GetDataItem("TextBox2").value;
+        };
+    </script>
+
+</body>
+</html>

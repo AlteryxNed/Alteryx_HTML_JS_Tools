@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <script>
+        // Include version 1 of the engine base library.
+        document.write('<link rel="import" href="' + window.Alteryx.LibDir + '1/lib/alteryx/engine/includes.html">');
+    </script>
+
+    <script>
+        /**
+         * This function defines our input and output connections.
+         * It must match the input and output connections defined in the GUI plugin's XML file.
+         */
+        Alteryx.Plugin.DefineConnections = function()
+        {
+            return {
+                IncomingConnections: [{
+                    type: "Input1",
+                    GroupInfo: {
+                        count: 0,
+                        grouping: "false"
+                    }
+                }],
+                OutgoingConnections: [{
+                    name: "Output"
+                }]
+            };
+        };
+
+        /**
+         * Called at the beginning of plugin lifetime with the plugin's configuration properties.
+         * This implementation contains example code that prints each configuration key/value pair as
+         * an engine output message.
+         *
+         * @params config The plugin's configuration.
+         */
+        Alteryx.Plugin.PI_Init = function(config)
+        {
+            Alteryx.Engine.SendMessage.Info("Config properties:");
+
+            for (var i in config.Configuration) {
+                Alteryx.Engine.SendMessage.Info(i + ": " + config.Configuration[i]);
+            }
+        };
+
+        /**
+         * Called once for each incoming connection with the connection's metainfo. When a per-connection init comes in,
+         * we would probably store off the incoming RecordInfo.
+         *
+         * @params metaInfo The meta-information for the current incoming connection.
+         */
+        Alteryx.Plugin.II_Init = function(metaInfo)
+        {
+            Alteryx.Engine.SendMessage.RecordInfo("Output", metaInfo.RecordInfo)
+        };
+
+        /**
+         * After II_Init has been called for each incoming connection, II_PushRecords is called for each non-empty
+         * incoming connection with that connection's records. This implementation contains example code that
+         * pushes out the same records it receives.
+         *
+         * @param data The incoming records.
+         */
+        Alteryx.Plugin.II_PushRecords = function(data)
+        {
+            var myRecords = [];
+            var myRow = [];
+            for (var i = 0; i < data.Records.length; i++)
+            {
+                myRow = [];
+                for (var j = 0; j < data.Records[i].length; j++)
+                {
+                    myRow.push(data.Records[i][j]);
+                }
+                myRecords.push(myRow);
+            }
+            Alteryx.Engine.SendMessage.PushRecords("Output", myRecords);
+        };
+
+        /**
+         * II_AllClosed is called with no arguments after all incoming connections have closed. This implementation
+         * sends a CloseOutput message with the name of the outgoing connection to close.
+         *
+         * All code paths must terminate with a call to Alteryx.Engine.SendMessage.Complete()
+         */
+        Alteryx.Plugin.II_AllClosed = function()
+        {
+            Alteryx.Engine.SendMessage.CloseOutput(Alteryx.Plugin.DefineConnections().OutgoingConnections[0].name);
+            Alteryx.Engine.SendMessage.Complete();
+        };
+
+        /**
+         * If the tool has no input:
+         *    PI_PushAllRecords is called instead of the II functions.
+         *    It is also called at configure time with a record limit of 0.
+         *
+         * If this function is implemented, all code paths must signal completion with a call to
+         *    Alteryx.Engine.SendMessage.Complete()
+         *
+         * @param recordLimit The maximum number of records that this function should return.
+         */
+        Alteryx.Plugin.PI_PushAllRecords = function(recordLimit)
+        {
+            Alteryx.Engine.SendMessage.Error("This tool requires an input connection.");
+            Alteryx.Engine.SendMessage.Complete();
+        };
+
+        /**
+         * PI_Close is called with no arguments at the end of the plugin's lifetime.
+         * All code paths must terminate with a call to Alteryx.Engine.SendMessage.PI_Close()
+         */
+        Alteryx.Plugin.PI_Close = function()
+        {
+            Alteryx.Engine.SendMessage.PI_Close();
+        };
+
+    </script>
+</head>
+<body>
+</body>
+</html>

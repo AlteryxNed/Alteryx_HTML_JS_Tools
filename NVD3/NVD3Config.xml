@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--All paths are relative to this config file.  The variables [Engine.EngineDirectory], [Engine.PluginDirectory] and [Engine.JavaScriptPluginDirectory] can also be used-->
+<AlteryxJavaScriptPlugin>
+  <EngineSettings EngineDll="HTML" EngineDllEntryPoint="NVD3Engine.html" SDKVersion="10.1" />
+  <GuiSettings Html="NVD3Gui.html" Icon="NVD3Icon.png" SDKVersion="10.1">
+    <InputConnections>
+      <Connection Name="Input1" AllowMultiple="False" Optional="False" Type="Connection" Label="A"/>
+    </InputConnections>
+    <OutputConnections>
+      <Connection Name="Output" AllowMultiple="False" Optional="True" Type="Connection" Label="B"/>
+    </OutputConnections>
+  </GuiSettings>
+</AlteryxJavaScriptPlugin>
